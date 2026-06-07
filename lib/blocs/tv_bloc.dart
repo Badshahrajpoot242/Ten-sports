@@ -1,38 +1,21 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-import 'dart:async';
-import 'package:live_tv/models/tv_response.dart';
-import 'package:live_tv/networking/Response.dart';
-import 'package:live_tv/repository/tv_repo.dart';
+// Ye class aapka JSON data fetch karegi jo aap Firebase ya GitHub Gist par rakhenge
+class TvBloc {
+  // Yahan aap apna wo link daalein jahan aapne apni JSON file rakhi hai
+  final String jsonUrl = "YAHAN_APNA_JSON_LINK_DAALEIN";
 
-class TvBloc{
-  TvRepo _tvRepo;
-  StreamController _streamController;
-
-  StreamSink<Response<tvResponse>> get tvDataSink =>
-      _streamController.sink;
-
-  Stream<Response<tvResponse>> get tvDataStream =>
-      _streamController.stream;
-
-  TvBloc() {
-    _streamController = StreamController<Response<tvResponse>>();
-    _tvRepo = TvRepo();
-    fetchTv();
-  }
-  fetchTv() async {
-    tvDataSink.add(Response.loading('Loading..'));
+  Future<List<dynamic>> fetchChannels() async {
     try {
-      tvResponse response = await _tvRepo.fetchTvResponse();
-      tvDataSink.add(Response.completed(response));
-    }
-    catch (e) {
-      tvDataSink.add(Response.error(e.toString()));
-      print(e);
+      final response = await http.get(Uri.parse(jsonUrl));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load channels');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
     }
   }
-    dispose(){
-      _streamController?.close();
-    }
 }
-
-
